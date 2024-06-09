@@ -14,7 +14,8 @@ public class MenuPage {
     public void clickOnBookStore(){
         //driver.findElements(By.cssSelector(".btn.btn-light")).get(30).click();
 
-        WebElement menuItem = driver.findElement(By.cssSelector(".element-group:last-child #item-2"));
+        //WebElement menuItem = driver.findElement(By.cssSelector(".element-group:last-child #item-2"));
+        WebElement menuItem = driver.findElements(By.cssSelector(".btn.btn-light")).get(30);
 
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         jse.executeScript("arguments[0].scrollIntoView(true);", menuItem);
