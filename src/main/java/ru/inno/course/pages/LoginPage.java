@@ -1,7 +1,12 @@
 package ru.inno.course.pages;
 
+import io.qameta.allure.Attachment;
+import io.qameta.allure.Step;
 import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import ru.inno.course.helpers.ConfigHelper;
 
 public class LoginPage {
     private final WebDriver driver;
@@ -10,18 +15,38 @@ public class LoginPage {
         this.driver = driver;
     }
 
-    public void openPage(){
+    @Step("Открыть страницу https://demoqa.com/login")
+    public void openPage() {
         driver.manage().window().maximize();
-        driver.get("https://demoqa.com/login");
-    }
-    public void setLogin(String user){
-        driver.findElement(By.cssSelector("#userName")).sendKeys(user);
-    }
-    public void setPassword(String password){
-        driver.findElement(By.cssSelector("#password")).sendKeys(password);
-    }
-    public void clickLogin(){
-        driver.findElement(By.cssSelector("#login")).click();
+        driver.get(ConfigHelper.getBaseUrl() + "/login");
     }
 
+    @Step("Авторизация на странице https://demoqa.com/login")
+    public void authOnBookStore(String user, String password) {
+        setUserName(user);
+        setPassword(password);
+        clickLogInBtn();
+    }
+
+    @Step("Ввести логин в поле \"UserName\"")
+    private void setUserName(String user) {
+        driver.findElement(By.cssSelector("#userName")).sendKeys(user);
+    }
+
+    @Step("Ввести пароль в поле \"Password\"")
+    private void setPassword(String password) {
+        driver.findElement(By.cssSelector("#password")).sendKeys(password);
+    }
+
+    @Step("Нажать на кнопку \"Login\"")
+    private void clickLogInBtn() {
+        driver.findElement(By.cssSelector("#login")).click();
+        getPageScreen();
+    }
+
+    @Attachment(value = "ScreenShot.png", fileExtension = ".png", type = "image/png")
+    private byte[] getPageScreen() {
+        return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
+    }
 }
+
