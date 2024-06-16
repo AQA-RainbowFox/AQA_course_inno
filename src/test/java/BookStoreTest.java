@@ -9,7 +9,9 @@ import ru.inno.course.pages.BookStorePage;
 import ru.inno.course.pages.LoginPage;
 import ru.inno.course.pages.MenuPage;
 import ru.inno.course.pages.ProfilePage;
+
 import java.time.Duration;
+
 import static io.qameta.allure.Allure.step;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,10 +22,19 @@ public class BookStoreTest {
 
     private WebDriver driver;
     private NetworkService networkService;
+    private LoginPage login;
+    private ProfilePage profile;
+    private BookStorePage bookStorePage;
+    private MenuPage menu;
 
     @BeforeEach
     public void setup() {
         driver = new ChromeDriver();
+        login = new LoginPage(driver);
+        profile = new ProfilePage(driver);
+        bookStorePage = new BookStorePage(driver);
+        menu = new MenuPage(driver);
+        networkService = new NetworkService(ConfigHelper.getUserName(), ConfigHelper.getPassword());
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
     }
 
@@ -43,11 +54,6 @@ public class BookStoreTest {
     @Severity(SeverityLevel.BLOCKER)
     @Tags(@Tag("Позитивный"))
     public void emptyProfileTest() {
-        LoginPage login;
-        ProfilePage profile;
-        login = new LoginPage(driver);
-        profile = new ProfilePage(driver);
-
         login.openPage();
         login.authOnBookStore(ConfigHelper.getUserName(), ConfigHelper.getPassword());
 
@@ -64,31 +70,21 @@ public class BookStoreTest {
     @Severity(SeverityLevel.CRITICAL)
     @Tags(@Tag("Позитивный"))
     public void bookAddProfileTest() {
-        LoginPage login;
-        ProfilePage profile;
-        BookStorePage bookStorePage;
-        MenuPage menu;
-
-        login = new LoginPage(driver);
-        profile = new ProfilePage(driver);
-        bookStorePage = new BookStorePage(driver);
-        menu = new MenuPage(driver);
-
-        NetworkService ns = new NetworkService(ConfigHelper.getUserName(), ConfigHelper.getPassword());
-
         login.openPage();
         login.authOnBookStore(ConfigHelper.getUserName(), ConfigHelper.getPassword());
         menu.clickOnBookStore();
 
-        ns.addBookToProfile(bookStorePage.getAllIsbn(ConfigHelper.countBookAddProfileTest()));
+        networkService.addBookToProfile(bookStorePage.getAllIsbn(ConfigHelper.countBookAddProfileTest()));
 
         login.openPage();
         login.authOnBookStore(ConfigHelper.getUserName(), ConfigHelper.getPassword());
+
         step("Проверить, что ожидаемое и отображаемое количестов книг совпадают", () ->
                 assertEquals(ConfigHelper.expectedCountBookAddProfileTest(),
                         profile.getBooksCount(),
                         "Ожидаемое и отображаемое количество книг не совпадают"
-                ));
+                )
+        );
     }
 
     @Test
@@ -99,40 +95,32 @@ public class BookStoreTest {
     @Severity(SeverityLevel.CRITICAL)
     @Tags(@Tag("Позитивный"))
     public void bookAddAndDeleteTest() {
-        LoginPage login;
-        ProfilePage profile;
-        BookStorePage bookStorePage;
-        MenuPage menu;
-
-        login = new LoginPage(driver);
-        profile = new ProfilePage(driver);
-        bookStorePage = new BookStorePage(driver);
-        menu = new MenuPage(driver);
         SoftAssertions softy = new SoftAssertions();
-        NetworkService ns = new NetworkService(ConfigHelper.getUserName(), ConfigHelper.getPassword());
 
         login.openPage();
         login.authOnBookStore(ConfigHelper.getUserName(), ConfigHelper.getPassword());
         menu.clickOnBookStore();
 
-        ns.addBookToProfile(bookStorePage.getAllIsbn(ConfigHelper.countBookAddAndDeleteTest()));
+        networkService.addBookToProfile(bookStorePage.getAllIsbn(ConfigHelper.countBookAddAndDeleteTest()));
 
         login.openPage();
         login.authOnBookStore(ConfigHelper.getUserName(), ConfigHelper.getPassword());
 
         step("Проверить, что ожидаемое и отображаемое количество книг совпадают", () -> {
-            softy.assertThat(ConfigHelper.expectedCountBookAddAndDeleteTest())
-                    .as("Ожидаемое и отображаемое количество книг не совпадают после добавления")
-                    .isEqualTo(profile.getBooksCount());
-        });
+                    softy.assertThat(ConfigHelper.expectedCountBookAddAndDeleteTest())
+                            .as("Ожидаемое и отображаемое количество книг не совпадают после добавления")
+                            .isEqualTo(profile.getBooksCount());
+                }
+        );
 
         profile.clickDeleteAllBooks();
 
         step("Проверить, что в профиле нет книг после удаления", () -> {
-            softy.assertThat(ConfigHelper.getPageProfileRows())
-                    .as("В профиле есть книги, ожидалось, что их не будет")
-                    .isEqualTo(profile.getPageContentInfo());
-        });
+                    softy.assertThat(ConfigHelper.getPageProfileRows())
+                            .as("В профиле есть книги, ожидалось, что их не будет")
+                            .isEqualTo(profile.getPageContentInfo());
+                }
+        );
 
         softy.assertAll();
     }
